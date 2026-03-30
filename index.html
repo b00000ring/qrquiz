@@ -3,141 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Interact Test</title>
+    <title>Interact Party</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&family=Oswald:wght@500&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- СБРОС И БАЗА --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* === БАЗА И АНИМАЦИЯ ФОНА === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* --- ЭКРАН (ПРОЕКТОР) --- */
-        body.screen {
-            background: #000;
+        body {
+            font-family: 'Inter', sans-serif;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
 
-        /* Кнопка очистки */
-        .btn-clear {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.5);
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            z-index: 100;
-            transition: 0.3s;
-        }
-        .btn-clear:hover { background: rgba(255, 0, 0, 0.2); color: #fff; border-color: red; }
-
-        /* Стена ответов */
-        .answers-container {
-            width: 100%;
-            height: 100%;
-            padding: 40px;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            justify-content: center;
-            gap: 20px;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        /* Карточка */
-        .card {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 25px 35px;
-            border-radius: 8px;
-            border-left: 4px solid #fff;
-            animation: appear 0.3s ease-out;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            max-width: 450px;
-            min-width: 200px;
+        /* === ЭКРАН (ПРОЕКТОР) === */
+        body.screen-mode { height: 100vh; display: flex; position: relative; }
+
+        /* Панель управления */
+        .control-panel {
+            position: fixed; top: 20px; left: 20px; z-index: 100;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        .card-name { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .card-text { font-size: 32px; font-weight: 700; line-height: 1.1; }
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; padding: 10px; border-radius: 50%;
+            width: 45px; height: 45px; cursor: pointer; backdrop-filter: blur(5px);
+            transition: 0.3s; font-size: 18px; text-align: center; line-height: 22px;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); }
+        .btn-icon.active { background: rgba(0, 255, 157, 0.2); border-color: #00ff9d; color: #00ff9d; }
 
         /* QR по центру */
         .qr-center {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            transition: opacity 0.5s;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); text-align: center;
+            transition: opacity 0.5s; z-index: 10;
         }
         .qr-center.hidden { opacity: 0; pointer-events: none; }
-        .qr-title { font-size: 18px; margin-bottom: 20px; color: #444; letter-spacing: 2px; text-transform: uppercase; }
-
-        @keyframes appear { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-
-        /* --- ТЕЛЕФОН (ЮЗЕР) --- */
-        body.user {
-            background: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        .qr-title { font-size: 20px; margin-bottom: 20px; color: rgba(255,255,255,0.3); letter-spacing: 3px; text-transform: uppercase; }
+        .qr-box {
+            padding: 20px; background: rgba(255,255,255,0.1);
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: inline-block;
         }
 
-        .user-form {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* Счетчик */
+        .counter-badge {
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.5); padding: 10px 20px;
+            border-radius: 30px; font-weight: bold; color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        input, textarea {
-            width: 100%;
-            background: #111;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            font-size: 18px;
-            outline: none;
-            transition: border-color 0.2s;
-            font-family: inherit;
+        /* Стена ответов */
+        .answers-wall {
+            width: 100%; height: 100%; padding: 80px 40px 40px 40px;
+            display: flex; flex-wrap: wrap; align-content: flex-start;
+            justify-content: center; gap: 20px; overflow-y: auto;
         }
-        input:focus, textarea:focus { border-color: #fff; }
-        textarea { resize: none; }
 
-        .btn-send {
-            width: 100%;
-            padding: 20px;
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* Карточка (Glassmorphism) */
+        .card {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px 35px; border-radius: 15px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 400px; min-width: 250px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden;
         }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(to bottom, #00f2fe, #4facfe);
+        }
+        .card-name { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .card-text { font-size: 28px; font-weight: 700; line-height: 1.2; }
+
+        @keyframes popIn { 0% { transform: scale(0.5) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+
+        /* === ТЕЛЕФОН (ЮЗЕР) === */
+        body.user-mode { display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .user-container { width: 100%; max-width: 400px; text-align: center; }
+        .logo-text { font-family: 'Oswald', sans-serif; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(to right, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-sub { color: rgba(255,255,255,0.4); margin-bottom: 40px; font-size: 14px; letter-spacing: 2px;}
+        .user-input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 20px; border-radius: 12px; font-size: 18px; outline: none; margin-bottom: 15px; transition: 0.3s; font-family: 'Inter', sans-serif; }
+        .user-input:focus { border-color: #00f2fe; background: rgba(0, 242, 254, 0.05); box-shadow: 0 0 20px rgba(0, 242, 254, 0.1); }
+        .btn-send { width: 100%; padding: 20px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s; }
+        .btn-send:active { transform: scale(0.95); }
+
+        /* Успех */
+        .success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 999; }
+        .success-text { font-size: 24px; font-weight: bold; color: #38ef7d; }
         
-        .success-msg {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px; font-weight: bold;
-            display: none;
-            background: #000;
-            padding: 20px;
-        }
+        /* Конфетти */
+        .confetti { position: fixed; width: 10px; height: 10px; background: #f00; animation: fall 3s linear forwards; z-index: 9999; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
 
-    <!-- Библиотеки -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -147,9 +119,8 @@
 <div id="app"></div>
 
 <script>
-    // ========== ТЕСТОВАЯ БАЗА ДАННЫХ (УЖЕ РАБОТАЕТ) ==========
-    // Данные валидны на момент создания ответа.
-   const firebaseConfig = {
+    // ========== НАСТРОЙКИ (ВСТАВЬ СЮДА СВОИ КЛЮЧИ!) ==========
+ const firebaseConfig = {
   apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
   authDomain: "forolesyanikolaevna.firebaseapp.com",
   databaseURL: "https://forolesyanikolaevna-default-rtdb.firebaseio.com",
@@ -170,31 +141,58 @@
     if (isScreen) startScreen();
     else startUser();
 
+    // === ГЕНЕРАТОР ЗВУКА (БЕЗ СКАЧИВАНИЯ) ===
+    function playPopSound() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Частота
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1); // Падение тона
+        
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+
     // ========== ЭКРАН ==========
     function startScreen() {
-        document.body.className = 'screen';
+        document.body.className = 'screen-mode';
         document.getElementById('app').innerHTML = `
-            <button class="btn-clear" onclick="clearAnswers()">Очистить</button>
-            <div class="answers-container" id="list"></div>
+            <div class="control-panel">
+                <button class="btn-icon" onclick="toggleFullscreen()">⛶</button>
+                <button class="btn-icon active" id="soundBtn" onclick="toggleSound()">🔊</button>
+                <button class="btn-icon" onclick="clearAll()" style="font-size:14px;">🗑</button>
+            </div>
+            <div class="counter-badge">Ответов: <span id="count">0</span></div>
+            
             <div class="qr-center" id="qrPlaceholder">
                 <div class="qr-title">Сканируйте QR</div>
-                <div id="qrDiv"></div>
+                <div class="qr-box" id="qrDiv"></div>
             </div>
+            <div class="answers-wall" id="list"></div>
         `;
         
+        window.soundEnabled = true;
+
         // Генерация QR
         new QRCode(document.getElementById('qrDiv'), { 
-            text: cleanUrl, 
-            width: 200, 
-            height: 200, 
-            colorDark: "#ffffff", 
-            colorLight: "#000000" 
+            text: cleanUrl, width: 200, height: 200, 
+            colorDark: "#ffffff", colorLight: "transparent" 
         });
 
         // Слушаем ответы
         db.ref('answers').on('child_added', s => {
             showAnswer(s.val());
             document.getElementById('qrPlaceholder').classList.add('hidden');
+            updateCounter();
+            if(window.soundEnabled) playPopSound();
         });
 
         // Слушаем очистку
@@ -202,8 +200,27 @@
             if(!s.exists()) {
                 document.getElementById('list').innerHTML = '';
                 document.getElementById('qrPlaceholder').classList.remove('hidden');
+                updateCounter();
             }
         });
+    }
+
+    function updateCounter() {
+        const count = document.getElementsByClassName('card').length;
+        const el = document.getElementById('count');
+        if(el) el.innerText = count;
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+
+    function toggleSound() {
+        window.soundEnabled = !window.soundEnabled;
+        const btn = document.getElementById('soundBtn');
+        btn.classList.toggle('active');
+        btn.innerText = window.soundEnabled ? '🔊' : '🔇';
     }
 
     function showAnswer(data) {
@@ -214,41 +231,52 @@
         list.prepend(card);
     }
 
-    function clearAnswers() {
-        if(confirm('Очистить все ответы?')) {
-            db.ref('answers').remove();
-        }
+    function clearAll() {
+        if(confirm('Очистить все ответы?')) db.ref('answers').remove();
     }
 
     // ========== ТЕЛЕФОН ==========
     function startUser() {
-        document.body.className = 'user';
+        document.body.className = 'user-mode';
         document.getElementById('app').innerHTML = `
-            <div class="user-form">
-                <input type="text" id="inputName" placeholder="Ваше имя">
-                <textarea id="inputText" placeholder="Ваш ответ..." rows="2"></textarea>
+            <div class="user-container">
+                <div class="logo-text">ОПРОС</div>
+                <div class="logo-sub">Твой голос важен</div>
+                <input type="text" id="inputName" class="user-input" placeholder="Ваше имя">
+                <textarea id="inputText" class="user-input" style="height:120px; resize:none" placeholder="Ваш ответ..."></textarea>
                 <button class="btn-send" onclick="send()">Отправить</button>
             </div>
-            <div class="success-msg" id="success">Готово!</div>
+            <div class="success-overlay" id="success"><div class="success-text">Готово!</div></div>
         `;
     }
 
     function send() {
         const name = document.getElementById('inputName').value || 'Гость';
         const text = document.getElementById('inputText').value;
-        if(!text) return alert("Введите ответ");
+        if(!text) return;
 
         db.ref('answers').push({ name: name, text: text });
 
         // Анимация успеха
-        document.querySelector('.user-form').style.opacity = '0.2';
-        document.getElementById('success').style.display = 'block';
+        document.getElementById('success').style.display = 'flex';
+        launchConfetti();
         
         setTimeout(() => {
-            document.querySelector('.user-form').style.opacity = '1';
             document.getElementById('success').style.display = 'none';
             document.getElementById('inputText').value = '';
-        }, 1500);
+        }, 2000);
+    }
+
+    function launchConfetti() {
+        for(let i=0; i<30; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random()*100+'vw';
+            c.style.top = '-10px';
+            c.style.background = ['#00f2fe', '#ff0055', '#fff'][Math.floor(Math.random()*3)];
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }
     }
 
     function escapeHtml(t) { return t ? t.replace(/</g,'&lt;') : t; }
