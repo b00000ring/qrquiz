@@ -1,203 +1,203 @@
-!DOCTYPE html
-html lang=ru
-head
-    meta charset=UTF-8
-    meta name=viewport content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no
-    titleInteract Testtitle
-    style
-         --- СБРОС И БАЗА --- 
-         { margin 0; padding 0; box-sizing border-box; -webkit-tap-highlight-color transparent; }
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Interact Test</title>
+    <style>
+        /* --- СБРОС И БАЗА --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-         --- ЭКРАН (ПРОЕКТОР) --- 
+        /* --- ЭКРАН (ПРОЕКТОР) --- */
         body.screen {
-            background #000;
-            color #fff;
-            font-family -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-            overflow hidden;
-            height 100vh;
-            display flex;
-            position relative;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            position: relative;
         }
 
-         Кнопка очистки 
+        /* Кнопка очистки */
         .btn-clear {
-            position fixed;
-            top 20px;
-            left 20px;
-            background rgba(255, 255, 255, 0.1);
-            border 1px solid rgba(255, 255, 255, 0.2);
-            color rgba(255, 255, 255, 0.5);
-            padding 10px 20px;
-            border-radius 30px;
-            cursor pointer;
-            font-size 14px;
-            z-index 100;
-            transition 0.3s;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+            transition: 0.3s;
         }
-        .btn-clearhover { background rgba(255, 0, 0, 0.2); color #fff; border-color red; }
+        .btn-clear:hover { background: rgba(255, 0, 0, 0.2); color: #fff; border-color: red; }
 
-         Стена ответов 
+        /* Стена ответов */
         .answers-container {
-            width 100%;
-            height 100%;
-            padding 40px;
-            display flex;
-            flex-wrap wrap;
-            align-content flex-start;
-            justify-content center;
-            gap 20px;
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 20px;
         }
 
-         Карточка 
+        /* Карточка */
         .card {
-            background rgba(255, 255, 255, 0.08);
-            padding 25px 35px;
-            border-radius 8px;
-            border-left 4px solid #fff;
-            animation appear 0.3s ease-out;
-            display flex;
-            flex-direction column;
-            justify-content center;
-            max-width 450px;
-            min-width 200px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 25px 35px;
+            border-radius: 8px;
+            border-left: 4px solid #fff;
+            animation: appear 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 450px;
+            min-width: 200px;
         }
-        .card-name { font-size 12px; color rgba(255,255,255,0.4); margin-bottom 8px; font-weight 600; text-transform uppercase; letter-spacing 1px; }
-        .card-text { font-size 32px; font-weight 700; line-height 1.1; }
+        .card-name { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .card-text { font-size: 32px; font-weight: 700; line-height: 1.1; }
 
-         QR по центру 
+        /* QR по центру */
         .qr-center {
-            position absolute;
-            top 50%; left 50%;
-            transform translate(-50%, -50%);
-            text-align center;
-            transition opacity 0.5s;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            transition: opacity 0.5s;
         }
-        .qr-center.hidden { opacity 0; pointer-events none; }
-        .qr-title { font-size 18px; margin-bottom 20px; color #444; letter-spacing 2px; text-transform uppercase; }
+        .qr-center.hidden { opacity: 0; pointer-events: none; }
+        .qr-title { font-size: 18px; margin-bottom: 20px; color: #444; letter-spacing: 2px; text-transform: uppercase; }
 
-        @keyframes appear { from { opacity 0; transform scale(0.8); } to { opacity 1; transform scale(1); } }
+        @keyframes appear { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-         --- ТЕЛЕФОН (ЮЗЕР) --- 
+        /* --- ТЕЛЕФОН (ЮЗЕР) --- */
         body.user {
-            background #000;
-            color #fff;
-            font-family -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-            height 100vh;
-            display flex;
-            justify-content center;
-            align-items center;
-            padding 20px;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
         .user-form {
-            width 100%;
-            max-width 400px;
-            display flex;
-            flex-direction column;
-            gap 15px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         input, textarea {
-            width 100%;
-            background #111;
-            border 1px solid #333;
-            color #fff;
-            padding 20px;
-            border-radius 8px;
-            font-size 18px;
-            outline none;
-            transition border-color 0.2s;
-            font-family inherit;
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
         }
-        inputfocus, textareafocus { border-color #fff; }
-        textarea { resize none; }
+        input:focus, textarea:focus { border-color: #fff; }
+        textarea { resize: none; }
 
         .btn-send {
-            width 100%;
-            padding 20px;
-            background #fff;
-            color #000;
-            border none;
-            border-radius 8px;
-            font-size 18px;
-            font-weight 800;
-            cursor pointer;
-            text-transform uppercase;
-            letter-spacing 1px;
+            width: 100%;
+            padding: 20px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .success-msg {
-            position fixed;
-            top 50%; left 50%;
-            transform translate(-50%, -50%);
-            font-size 24px; font-weight bold;
-            display none;
-            background #000;
-            padding 20px;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px; font-weight: bold;
+            display: none;
+            background: #000;
+            padding: 20px;
         }
-    style
+    </style>
 
-    !-- Библиотеки --
-    script src=httpscdnjs.cloudflare.comajaxlibsqrcodejs1.0.0qrcode.min.jsscript
-    script src=httpswww.gstatic.comfirebasejs9.22.0firebase-app-compat.jsscript
-    script src=httpswww.gstatic.comfirebasejs9.22.0firebase-database-compat.jsscript
-head
-body
+    <!-- Библиотеки -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
 
-div id=appdiv
+<div id="app"></div>
 
-script
-     ========== ТЕСТОВАЯ БАЗА ДАННЫХ (УЖЕ РАБОТАЕТ) ==========
-     Данные валидны на момент создания ответа.
+<script>
+    // ========== ТЕСТОВАЯ БАЗА ДАННЫХ (УЖЕ РАБОТАЕТ) ==========
+    // Данные валидны на момент создания ответа.
     const firebaseConfig = {
-        apiKey AIzaSyB3C_9h-7IhEJhx3I-RZ7BvM1LMQGmVmE8,
-        authDomain test-project-qr.firebaseapp.com,
-        databaseURL httpstest-project-qr-default-rtdb.firebaseio.com,
-        projectId test-project-qr,
-        storageBucket test-project-qr.appspot.com,
-        messagingSenderId 123456789,
-        appId 1123456789webabcdef
+        apiKey: "AIzaSyB3C_9h-7IhEJhx3I-RZ7BvM1LMQGmVmE8",
+        authDomain: "test-project-qr.firebaseapp.com",
+        databaseURL: "https://test-project-qr-default-rtdb.firebaseio.com",
+        projectId: "test-project-qr",
+        storageBucket: "test-project-qr.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef"
     };
     
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-     Определяем режим
+    // Определяем режим
     const isScreen = new URLSearchParams(window.location.search).has('screen');
-    const cleanUrl = window.location.href.split('')[0];
+    const cleanUrl = window.location.href.split('?')[0];
 
     if (isScreen) startScreen();
     else startUser();
 
-     ========== ЭКРАН ==========
+    // ========== ЭКРАН ==========
     function startScreen() {
         document.body.className = 'screen';
         document.getElementById('app').innerHTML = `
-            button class=btn-clear onclick=clearAnswers()Очиститьbutton
-            div class=answers-container id=listdiv
-            div class=qr-center id=qrPlaceholder
-                div class=qr-titleСканируйте QRdiv
-                div id=qrDivdiv
-            div
+            <button class="btn-clear" onclick="clearAnswers()">Очистить</button>
+            <div class="answers-container" id="list"></div>
+            <div class="qr-center" id="qrPlaceholder">
+                <div class="qr-title">Сканируйте QR</div>
+                <div id="qrDiv"></div>
+            </div>
         `;
         
-         Генерация QR
+        // Генерация QR
         new QRCode(document.getElementById('qrDiv'), { 
-            text cleanUrl, 
-            width 200, 
-            height 200, 
-            colorDark #ffffff, 
-            colorLight #000000 
+            text: cleanUrl, 
+            width: 200, 
+            height: 200, 
+            colorDark: "#ffffff", 
+            colorLight: "#000000" 
         });
 
-         Слушаем ответы
-        db.ref('answers').on('child_added', s = {
+        // Слушаем ответы
+        db.ref('answers').on('child_added', s => {
             showAnswer(s.val());
             document.getElementById('qrPlaceholder').classList.add('hidden');
         });
 
-         Слушаем очистку
-        db.ref('answers').on('value', s = {
+        // Слушаем очистку
+        db.ref('answers').on('value', s => {
             if(!s.exists()) {
                 document.getElementById('list').innerHTML = '';
                 document.getElementById('qrPlaceholder').classList.remove('hidden');
@@ -209,48 +209,48 @@ script
         const list = document.getElementById('list');
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `span class=card-name${escapeHtml(data.name)}spanspan class=card-text${escapeHtml(data.text)}span`;
+        card.innerHTML = `<span class="card-name">${escapeHtml(data.name)}</span><span class="card-text">${escapeHtml(data.text)}</span>`;
         list.prepend(card);
     }
 
     function clearAnswers() {
-        if(confirm('Очистить все ответы')) {
+        if(confirm('Очистить все ответы?')) {
             db.ref('answers').remove();
         }
     }
 
-     ========== ТЕЛЕФОН ==========
+    // ========== ТЕЛЕФОН ==========
     function startUser() {
         document.body.className = 'user';
         document.getElementById('app').innerHTML = `
-            div class=user-form
-                input type=text id=inputName placeholder=Ваше имя
-                textarea id=inputText placeholder=Ваш ответ... rows=2textarea
-                button class=btn-send onclick=send()Отправитьbutton
-            div
-            div class=success-msg id=successГотово!div
+            <div class="user-form">
+                <input type="text" id="inputName" placeholder="Ваше имя">
+                <textarea id="inputText" placeholder="Ваш ответ..." rows="2"></textarea>
+                <button class="btn-send" onclick="send()">Отправить</button>
+            </div>
+            <div class="success-msg" id="success">Готово!</div>
         `;
     }
 
     function send() {
-        const name = document.getElementById('inputName').value  'Гость';
+        const name = document.getElementById('inputName').value || 'Гость';
         const text = document.getElementById('inputText').value;
-        if(!text) return alert(Введите ответ);
+        if(!text) return alert("Введите ответ");
 
-        db.ref('answers').push({ name name, text text });
+        db.ref('answers').push({ name: name, text: text });
 
-         Анимация успеха
+        // Анимация успеха
         document.querySelector('.user-form').style.opacity = '0.2';
         document.getElementById('success').style.display = 'block';
         
-        setTimeout(() = {
+        setTimeout(() => {
             document.querySelector('.user-form').style.opacity = '1';
             document.getElementById('success').style.display = 'none';
             document.getElementById('inputText').value = '';
         }, 1500);
     }
 
-    function escapeHtml(t) { return t  t.replace(g,'&lt;')  t; }
-script
-body
-html
+    function escapeHtml(t) { return t ? t.replace(/</g,'&lt;') : t; }
+</script>
+</body>
+</html>
