@@ -41,7 +41,7 @@
             border-radius: 50px;
             border: 1px solid var(--card-border);
             box-shadow: var(--shadow-soft);
-            display: flex; gap: 10px; /* Уменьшил отступ, чтобы влезли кнопки */
+            display: flex; gap: 10px;
             flex-wrap: wrap; justify-content: center;
         }
 
@@ -59,26 +59,25 @@
         .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
 
-        /* Стена ответов (ИСПРАВЛЕНО) */
+        /* Стена ответов */
         .answers-container {
             flex: 1; 
             width: 100%;
             padding: 30px; padding-bottom: 100px;
-            display: flex; flex-direction: column; /* Changed to column for better flow */
-            align-items: center; /* Центрируем карточки */
+            display: flex; flex-direction: column;
+            align-items: center;
             gap: 20px; 
-            overflow-y: auto; /* Скролл включен */
+            overflow-y: auto;
             overflow-x: hidden;
         }
 
-        /* Кастомный скроллбар */
         .answers-container::-webkit-scrollbar { width: 8px; }
         .answers-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
         .answers-container::-webkit-scrollbar-thumb { background: rgba(118, 75, 162, 0.3); border-radius: 10px; }
         .answers-container::-webkit-scrollbar-thumb:hover { background: rgba(118, 75, 162, 0.5); }
 
         .card-glass {
-            width: 100%; max-width: 450px; /* Фиксированная ширина для красоты */
+            width: 100%; max-width: 450px;
             background: var(--card-glass);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -153,7 +152,7 @@
 <div id="app"></div>
 
 <script>
-    // ========== КЛЮЧИ (ВСТАВЬ СВОИ!) ==========
+    // ========== ТВОИ КЛЮЧИ (ВСТАВЛЕНЫ) ==========
     const firebaseConfig = {
         apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
         authDomain: "forolesyanikolaevna.firebaseapp.com",
@@ -162,15 +161,15 @@
         storageBucket: "forolesyanikolaevna.firebasestorage.app",
         messagingSenderId: "558985963977",
         appId: "1:558985963977:web:0ad18b702dff3aa0b22018",
-        measurementId: "G-EN7N8ZHQ
+        measurementId: "G-EN7N8ZHQLF"
     };
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const isScreen = new URLSearchParams(window.location.search).has('screen');
     const cleanUrl = window.location.href.split('?')[0];
 
-    // Глобальная переменная для хранения ответов (для экспорта)
     window.currentAnswers = {};
 
     if (isScreen) startScreen();
@@ -216,30 +215,18 @@
         // Ответы
         db.ref('answers').on('value', snapshot => {
             const data = snapshot.val();
-            window.currentAnswers = data || {}; // Сохраняем данные для экспорта
+            window.currentAnswers = data || {}; 
             
             const list = document.getElementById('list');
-            list.innerHTML = ''; // Очищаем список для перерисовки
+            list.innerHTML = ''; 
 
             if (!data) {
                 document.getElementById('qrPlaceholder').classList.remove('hidden');
             } else {
                 document.getElementById('qrPlaceholder').classList.add('hidden');
-                // Перебираем и рендерим (сортировка: новые вверху, но можно и как хочет юзер)
-                // Используем Object.keys().reverse() чтобы новые были сверху
                 const keys = Object.keys(data).reverse();
-                
-                // Но чтобы скролл работал логично, лучше новые внизу? Или сверху?
-                // Обычно в чатах новые снизу. Но на "стене ответов" привычнее видеть новые сверху.
-                // Я оставлю новые сверху (prepend), но мы перерисовываем весь список при изменении.
-                // Это проще для синхронизации.
-                
-                // Чтобы не моргало при перерисовке, можно использовать child_added, 
-                // но для экспорта нам нужно иметь актуальный массив currentAnswers.
-                // Я сделаю оптимизацию: рендерим только если список пуст или изменился.
-                
                 keys.forEach(key => {
-                     renderCard(data[key], false); // false = не проигрывать звук при перерисовке скролла
+                     renderCard(data[key], false);
                 });
             }
         });
@@ -265,7 +252,6 @@
         card.className = 'card-glass';
         card.innerHTML = `<div class="card-name">${escapeHtml(d.name)}</div><div class="card-text">${escapeHtml(d.text)}</div>`;
         
-        // Добавляем вверх списка
         list.prepend(card);
         
         if (sound) playSound('pop');
@@ -279,12 +265,11 @@
         }
 
         let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Имя,Ответ,Время\r\n"; // Заголовки
+        csvContent += "Имя,Ответ,Время\r\n"; 
 
         const data = window.currentAnswers;
         for (const key in data) {
             const row = data[key];
-            // Экранируем кавычки и запятые для CSV
             const name = `"${row.name.replace(/"/g, '""')}"`;
             const text = `"${row.text.replace(/"/g, '""')}"`;
             const time = row.timestamp ? new Date(row.timestamp).toLocaleString('ru-RU') : '-';
@@ -379,7 +364,7 @@
         db.ref('answers').push({ 
             name: name, 
             text: text,
-            timestamp: firebase.database.ServerValue.TIMESTAMP // Добавляем время сервера
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         });
         
         document.getElementById('iText').value = '';
