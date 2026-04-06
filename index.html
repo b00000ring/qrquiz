@@ -26,53 +26,59 @@
             color: var(--text-color);
             min-height: 100vh;
             overflow-x: hidden;
-            /* Фиксируем фон */
             background-attachment: fixed;
         }
 
         /* --- PROJECTOR SCREEN --- */
         body.screen-mode { height: 100vh; position: relative; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* Панель админа */
+        /* Админ-панель */
         .admin-dock {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             padding: 10px 20px; z-index: 100;
             border-radius: 50px;
             border: 1px solid var(--card-border);
             box-shadow: var(--shadow-soft);
-            display: flex; gap: 15px;
-            transition: opacity 0.3s;
+            display: flex; gap: 10px; /* Уменьшил отступ, чтобы влезли кнопки */
+            flex-wrap: wrap; justify-content: center;
         }
-        /* Скрываем панель, если курсор не над ней (для чистоты экрана), но оставляем доступной */
-        .admin-dock:hover { opacity: 1 !important; }
 
         .btn-soft {
             background: white; border: none;
-            color: var(--text-color); padding: 10px 20px;
+            color: var(--text-color); padding: 10px 18px;
             font-size: 14px; font-weight: 700;
             cursor: pointer; border-radius: 25px;
             transition: all 0.2s;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 5px;
         }
         .btn-soft:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
-        .btn-magic {
-            background: var(--btn-gradient); color: white;
-        }
+        .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
 
-        /* Стена ответов */
+        /* Стена ответов (ИСПРАВЛЕНО) */
         .answers-container {
-            flex: 1; padding: 30px; padding-bottom: 100px;
-            display: flex; flex-wrap: wrap;
-            align-content: flex-start; justify-content: center;
-            gap: 20px; overflow-y: auto;
+            flex: 1; 
+            width: 100%;
+            padding: 30px; padding-bottom: 100px;
+            display: flex; flex-direction: column; /* Changed to column for better flow */
+            align-items: center; /* Центрируем карточки */
+            gap: 20px; 
+            overflow-y: auto; /* Скролл включен */
+            overflow-x: hidden;
         }
 
+        /* Кастомный скроллбар */
+        .answers-container::-webkit-scrollbar { width: 8px; }
+        .answers-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .answers-container::-webkit-scrollbar-thumb { background: rgba(118, 75, 162, 0.3); border-radius: 10px; }
+        .answers-container::-webkit-scrollbar-thumb:hover { background: rgba(118, 75, 162, 0.5); }
+
         .card-glass {
-            min-width: 300px; max-width: 400px;
+            width: 100%; max-width: 450px; /* Фиксированная ширина для красоты */
             background: var(--card-glass);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -148,21 +154,24 @@
 
 <script>
     // ========== КЛЮЧИ (ВСТАВЬ СВОИ!) ==========
-const firebaseConfig = {
-  apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
-  authDomain: "forolesyanikolaevna.firebaseapp.com",
-  databaseURL: "https://forolesyanikolaevna-default-rtdb.firebaseio.com",
-  projectId: "forolesyanikolaevna",
-  storageBucket: "forolesyanikolaevna.firebasestorage.app",
-  messagingSenderId: "558985963977",
-  appId: "1:558985963977:web:0ad18b702dff3aa0b22018",
-  measurementId: "G-EN7N8ZHQLF"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
+        authDomain: "forolesyanikolaevna.firebaseapp.com",
+        databaseURL: "https://forolesyanikolaevna-default-rtdb.firebaseio.com",
+        projectId: "forolesyanikolaevna",
+        storageBucket: "forolesyanikolaevna.firebasestorage.app",
+        messagingSenderId: "558985963977",
+        appId: "1:558985963977:web:0ad18b702dff3aa0b22018",
+        measurementId: "G-EN7N8ZHQ
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const isScreen = new URLSearchParams(window.location.search).has('screen');
     const cleanUrl = window.location.href.split('?')[0];
+
+    // Глобальная переменная для хранения ответов (для экспорта)
+    window.currentAnswers = {};
 
     if (isScreen) startScreen();
     else startUser();
@@ -197,6 +206,7 @@ const firebaseConfig = {
             <div class="admin-dock">
                 <button class="btn-soft" onclick="toggleHide()">👁 Скрыть</button>
                 <button class="btn-soft" onclick="clearAll()">🗑 Очистить</button>
+                <button class="btn-soft" onclick="exportData()">💾 Скачать CSV</button>
                 <button class="btn-soft btn-magic" onclick="partyTime()">✨ ВЗРЫВ</button>
             </div>
         `;
@@ -204,15 +214,33 @@ const firebaseConfig = {
         new QRCode(document.getElementById('qrDiv'), { text: cleanUrl, width: 180, height: 180 });
 
         // Ответы
-        db.ref('answers').on('child_added', s => {
-            renderCard(s.val());
-            document.getElementById('qrPlaceholder').classList.add('hidden');
-            playSound('pop');
-        });
-        db.ref('answers').on('value', s => {
-            if(!s.exists()) {
-                document.getElementById('list').innerHTML = '';
+        db.ref('answers').on('value', snapshot => {
+            const data = snapshot.val();
+            window.currentAnswers = data || {}; // Сохраняем данные для экспорта
+            
+            const list = document.getElementById('list');
+            list.innerHTML = ''; // Очищаем список для перерисовки
+
+            if (!data) {
                 document.getElementById('qrPlaceholder').classList.remove('hidden');
+            } else {
+                document.getElementById('qrPlaceholder').classList.add('hidden');
+                // Перебираем и рендерим (сортировка: новые вверху, но можно и как хочет юзер)
+                // Используем Object.keys().reverse() чтобы новые были сверху
+                const keys = Object.keys(data).reverse();
+                
+                // Но чтобы скролл работал логично, лучше новые внизу? Или сверху?
+                // Обычно в чатах новые снизу. Но на "стене ответов" привычнее видеть новые сверху.
+                // Я оставлю новые сверху (prepend), но мы перерисовываем весь список при изменении.
+                // Это проще для синхронизации.
+                
+                // Чтобы не моргало при перерисовке, можно использовать child_added, 
+                // но для экспорта нам нужно иметь актуальный массив currentAnswers.
+                // Я сделаю оптимизацию: рендерим только если список пуст или изменился.
+                
+                keys.forEach(key => {
+                     renderCard(data[key], false); // false = не проигрывать звук при перерисовке скролла
+                });
             }
         });
 
@@ -231,12 +259,46 @@ const firebaseConfig = {
         });
     }
 
-    function renderCard(d) {
+    function renderCard(d, sound = true) {
         const list = document.getElementById('list');
         const card = document.createElement('div');
         card.className = 'card-glass';
         card.innerHTML = `<div class="card-name">${escapeHtml(d.name)}</div><div class="card-text">${escapeHtml(d.text)}</div>`;
+        
+        // Добавляем вверх списка
         list.prepend(card);
+        
+        if (sound) playSound('pop');
+    }
+
+    // Функция экспорта в CSV
+    function exportData() {
+        if (!window.currentAnswers || Object.keys(window.currentAnswers).length === 0) {
+            alert("Нет данных для скачивания!");
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Имя,Ответ,Время\r\n"; // Заголовки
+
+        const data = window.currentAnswers;
+        for (const key in data) {
+            const row = data[key];
+            // Экранируем кавычки и запятые для CSV
+            const name = `"${row.name.replace(/"/g, '""')}"`;
+            const text = `"${row.text.replace(/"/g, '""')}"`;
+            const time = row.timestamp ? new Date(row.timestamp).toLocaleString('ru-RU') : '-';
+            
+            csvContent += `${name},${text},${time}\r\n`;
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "answers_export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function renderReaction(emoji) {
@@ -255,7 +317,11 @@ const firebaseConfig = {
         playSound('cyber');
     }
 
-    function clearAll() { db.ref('answers').remove(); }
+    function clearAll() {
+        if(confirm('Вы уверены? Все ответы исчезнут навсегда!')) {
+            db.ref('answers').remove();
+        }
+    }
 
     function partyTime() {
         db.ref('commands/party').set(Date.now());
@@ -268,7 +334,6 @@ const firebaseConfig = {
             c.className = 'confetti';
             c.style.left = Math.random()*100+'vw';
             c.style.top = '-10px';
-            // Цвета конфетти в тон градиенту
             c.style.background = ['#E0C3FC', '#8EC5FC', '#ffffff', '#764ba2'][Math.floor(Math.random()*4)];
             document.body.appendChild(c);
             setTimeout(() => c.remove(), 3000);
@@ -280,7 +345,7 @@ const firebaseConfig = {
         document.body.className = 'user-mode';
         document.getElementById('app').innerHTML = `
             <div class="user-box">
-                <div class="logo-main">Энергия выбора</div>
+                <div class="logo-main">VibeWall</div>
                 <div class="logo-sub">Твой голос в общем потоке</div>
                 
                 <input type="text" id="iName" class="input-glass" placeholder="Твое имя">
@@ -311,7 +376,12 @@ const firebaseConfig = {
         const text = document.getElementById('iText').value;
         if(!text) return;
         
-        db.ref('answers').push({ name: name, text: text });
+        db.ref('answers').push({ 
+            name: name, 
+            text: text,
+            timestamp: firebase.database.ServerValue.TIMESTAMP // Добавляем время сервера
+        });
+        
         document.getElementById('iText').value = '';
         
         const btn = document.querySelector('.btn-send-glass');
