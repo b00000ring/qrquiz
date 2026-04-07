@@ -59,25 +59,43 @@
         .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
 
-        /* Стена ответов */
+        /* === СТЕНА ОТВЕТОВ (ПЛИТКА) === */
         .answers-container {
             flex: 1; 
             width: 100%;
             padding: 30px; padding-bottom: 100px;
-            display: flex; flex-direction: column;
-            align-items: center;
-            gap: 20px; 
+            
+            /* Включаем Flexbox для стены */
+            display: flex;
+            flex-wrap: wrap; /* Перенос на следующую строку */
+            
+            /* Выравнивание */
+            align-content: flex-start; /* Карточки начинают сверху */
+            justify-content: center; /* Центрируем по горизонтали */
+            
+            gap: 20px; /* Отступ между карточками */
+            
+            /* Скролл */
             overflow-y: auto;
             overflow-x: hidden;
         }
 
+        /* Кастомный скроллбар */
         .answers-container::-webkit-scrollbar { width: 8px; }
         .answers-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
         .answers-container::-webkit-scrollbar-thumb { background: rgba(118, 75, 162, 0.3); border-radius: 10px; }
         .answers-container::-webkit-scrollbar-thumb:hover { background: rgba(118, 75, 162, 0.5); }
 
         .card-glass {
-            width: 100%; max-width: 450px;
+            /* Ширина карточки: мин 300px, макс 400px */
+            /* Если экран маленький - займет всю ширину с отступами */
+            width: 100%; 
+            min-width: 300px;
+            max-width: 400px;
+            
+            /* Чтобы они растягивались и заполняли пустое место */
+            flex-grow: 1; 
+
             background: var(--card-glass);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -152,7 +170,7 @@
 <div id="app"></div>
 
 <script>
-    // ========== ТВОИ КЛЮЧИ (ВСТАВЛЕНЫ) ==========
+    // ========== ТВОИ КЛЮЧИ ==========
     const firebaseConfig = {
         apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
         authDomain: "forolesyanikolaevna.firebaseapp.com",
@@ -252,6 +270,7 @@
         card.className = 'card-glass';
         card.innerHTML = `<div class="card-name">${escapeHtml(d.name)}</div><div class="card-text">${escapeHtml(d.text)}</div>`;
         
+        // Вставляем в начало (первые будут сверху слева)
         list.prepend(card);
         
         if (sound) playSound('pop');
