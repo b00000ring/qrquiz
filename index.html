@@ -25,13 +25,12 @@
             color: var(--text-color);
             min-height: 100vh;
             background-attachment: fixed;
-            overflow: hidden; /* Блокируем скролл тела страницы */
+            overflow: hidden;
         }
 
-        /* --- PROJECTOR SCREEN --- */
+        /* --- SCREEN MODE --- */
         body.screen-mode { height: 100vh; position: relative; }
 
-        /* Админ-панель */
         .admin-dock {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.9);
@@ -57,26 +56,23 @@
         .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
 
-        /* === СТЕНА ОТВЕТОВ (ПРОКРУТКА ИСПРАВЛЕНА) === */
+        /* === WALL === */
         .answers-container {
-            position: absolute; /* Жестко крепим к экрану */
+            position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            
             padding: 30px;
-            padding-bottom: 120px; /* Место снизу под админку */
+            padding-bottom: 120px;
             
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             align-content: start;
             
-            /* Включаем скролл именно внутри этого блока */
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Кастомный скроллбар */
         .answers-container::-webkit-scrollbar { width: 8px; }
         .answers-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
         .answers-container::-webkit-scrollbar-thumb { background: rgba(118, 75, 162, 0.3); border-radius: 10px; }
@@ -84,7 +80,6 @@
         .card-glass {
             background: var(--card-glass);
             backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             padding: 20px; border-radius: 20px;
             border: 1px solid var(--card-border);
             box-shadow: var(--shadow-soft);
@@ -96,7 +91,7 @@
         
         @keyframes floatIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        /* Реакции */
+        /* Reactions */
         #reactions-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
         .flying-emoji { position: absolute; bottom: 80px; font-size: 40px; animation: flyUp 4s linear forwards; }
         @keyframes flyUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
@@ -107,7 +102,7 @@
         .qr-title { font-size: 20px; margin-bottom: 20px; color: #666; font-weight: 700; }
         .qr-box { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; display: inline-block; box-shadow: var(--shadow-soft); }
 
-        /* Скрытие */
+        /* Blur */
         body.blurred .card-glass { filter: blur(15px); opacity: 0.4; pointer-events: none; }
         body.blurred::after {
             content: '🤫 Тише...'; position: fixed; top: 50%; left: 50%;
@@ -116,7 +111,7 @@
             color: var(--accent-color); font-size: 24px; z-index: 200;
         }
 
-        /* --- USER PHONE --- */
+        /* --- USER --- */
         body.user-mode { display: flex; justify-content: center; align-items: center; padding: 20px; }
         
         .user-box { width: 100%; max-width: 400px; }
@@ -146,7 +141,7 @@
 <div id="app"></div>
 
 <script>
-    // ========== ТВОИ КЛЮЧИ ==========
+    // ========== CONFIG ==========
     const firebaseConfig = {
         apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
         authDomain: "forolesyanikolaevna.firebaseapp.com",
@@ -180,7 +175,7 @@
         }
     }
 
-    // ========== ЭКРАН ==========
+    // ========== SCREEN ==========
     function startScreen() {
         document.body.className = 'screen-mode';
         document.getElementById('app').innerHTML = `
@@ -245,22 +240,33 @@
         if (sound) playSound('pop');
     }
 
+    // === ИСПРАВЛЕННЫЙ ЭКСПОРТ (BOM для Windows Excel) ===
     function exportData() {
         if (!window.currentAnswers || Object.keys(window.currentAnswers).length === 0) {
             alert("Нет данных!");
             return;
         }
-        let csv = "data:text/csv;charset=utf-8,Имя,Ответ,Время\r\n";
+        
+        // Добавляем BOM (\uFEFF) для корректного отображения кириллицы в Excel
+        let csvContent = "\uFEFFИмя;Ответ;Время\r\n"; 
+        
         const data = window.currentAnswers;
         for (const key in data) {
             const row = data[key];
+            // Используем точку с запятой как разделитель, так принято в RU Excel
             const name = `"${row.name.replace(/"/g, '""')}"`;
             const text = `"${row.text.replace(/"/g, '""')}"`;
             const time = row.timestamp ? new Date(row.timestamp).toLocaleString('ru-RU') : '-';
-            csv += `${name},${text},${time}\r\n`;
+            
+            csvContent += `${name};${text};${time}\r\n`;
         }
-        const link = document.createElement("a");
-        link.setAttribute("href", encodeURI(csv));
+
+        // Создаем Blob
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        
+        var link = document.createElement("a");
+        link.setAttribute("href", url);
         link.setAttribute("download", "vibewall_export.csv");
         document.body.appendChild(link);
         link.click();
@@ -295,7 +301,7 @@
         }
     }
 
-    // ========== ЮЗЕР ==========
+    // ========== USER ==========
     function startUser() {
         document.body.className = 'user-mode';
         document.getElementById('app').innerHTML = `
