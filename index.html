@@ -52,6 +52,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .btn-soft:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn-soft.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
         
         .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
@@ -70,7 +71,7 @@
             
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
+            transition: opacity 0.5s;
         }
 
         .answers-container::-webkit-scrollbar { width: 8px; }
@@ -90,6 +91,45 @@
         .card-text { font-size: 22px; font-weight: 600; color: #333; line-height: 1.3; }
         
         @keyframes floatIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        /* === WORD CLOUD CONTAINER === */
+        #cloudContainer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            padding: 40px;
+            display: none; /* Скрыт по умолчанию */
+            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            align-content: center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        /* Активное состояние облака */
+        #cloudContainer.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        /* Скрытие стены при показе облака */
+        .answers-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Стили слова в облаке */
+        .cloud-word {
+            display: inline-block;
+            margin: 10px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: popIn 0.5s ease-out;
+            transition: transform 0.2s;
+            cursor: default;
+        }
+        .cloud-word:hover { transform: scale(1.2); }
 
         /* Reactions */
         #reactions-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
@@ -160,6 +200,7 @@
     const cleanUrl = window.location.href.split('?')[0];
 
     window.currentAnswers = {};
+    window.isCloudVisible = false;
 
     if (isScreen) startScreen();
     else startUser();
@@ -187,11 +228,13 @@
             </div>
 
             <div class="answers-container" id="list"></div>
+            <div id="cloudContainer"></div>
 
             <div class="admin-dock">
                 <button class="btn-soft" onclick="toggleHide()">👁 Скрыть</button>
                 <button class="btn-soft" onclick="clearAll()">🗑 Очистить</button>
-                <button class="btn-soft" onclick="exportData()">💾 Скачать CSV</button>
+                <button class="btn-soft" id="btnCloud" onclick="toggleCloud()">☁️ Облако</button>
+                <button class="btn-soft" onclick="exportData()">💾 CSV</button>
                 <button class="btn-soft btn-magic" onclick="partyTime()">✨ ВЗРЫВ</button>
             </div>
         `;
@@ -213,6 +256,9 @@
                 keys.forEach(key => {
                      renderCard(data[key], false);
                 });
+                
+                // Если облако открыто, обновляем его
+                if(window.isCloudVisible) generateCloud();
             }
         });
 
@@ -240,20 +286,91 @@
         if (sound) playSound('pop');
     }
 
-    // === ИСПРАВЛЕННЫЙ ЭКСПОРТ (BOM для Windows Excel) ===
+    // === WORD CLOUD LOGIC ===
+    function toggleCloud() {
+        const cloud = document.getElementById('cloudContainer');
+        const list = document.getElementById('list');
+        const btn = document.getElementById('btnCloud');
+        
+        window.isCloudVisible = !window.isCloudVisible;
+        
+        if(window.isCloudVisible) {
+            list.classList.add('hidden');
+            cloud.classList.add('active');
+            btn.classList.add('active');
+            generateCloud();
+        } else {
+            list.classList.remove('hidden');
+            cloud.classList.remove('active');
+            btn.classList.remove('active');
+        }
+    }
+
+    function generateCloud() {
+        const container = document.getElementById('cloudContainer');
+        container.innerHTML = ''; // Очистка
+
+        // Список стоп-слов (что исключить)
+        const stopWords = ['и', 'в', 'во', 'не', 'что', 'он', 'на', 'я', 'с', 'со', 'как', 'а', 'то', 'все', 'она', 'так', 'его', 'но', 'да', 'ты', 'к', 'у', 'же', 'вы', 'за', 'бы', 'по', 'только', 'ее', 'мне', 'было', 'вот', 'от', 'меня', 'еще', 'нет', 'о', 'из', 'ему', 'теперь', 'когда', 'уже', 'для', 'вас', 'это', 'там', 'если', 'тут', 'ну', 'ли', 'а', 'даже', 'чтобы', 'мы', 'их', 'чем', 'был', 'тебя', 'его'];
+        
+        let words = [];
+        
+        // Собираем слова
+        Object.values(window.currentAnswers).forEach(ans => {
+            const text = ans.text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Убираем пунктуацию
+            const parts = text.split(/\s+/);
+            parts.forEach(word => {
+                if(word.length > 2 && !stopWords.includes(word)) {
+                    words.push(word);
+                }
+            });
+        });
+
+        // Считаем частоту
+        const frequency = words.reduce((acc, word) => {
+            acc[word] = (acc[word] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Сортируем и берем топ 50
+        const sorted = Object.entries(frequency).sort((a, b) => b[1] - a[1]).slice(0, 50);
+
+        if(sorted.length === 0) {
+            container.innerHTML = '<div style="color:white; font-size:24px;">Недостаточно данных для облака</div>';
+            return;
+        }
+
+        const maxCount = sorted[0][1];
+        const colors = ['#764ba2', '#667eea', '#E0C3FC', '#8EC5FC', '#fff', '#ff6b6b'];
+
+        sorted.forEach(([word, count], index) => {
+            const span = document.createElement('span');
+            span.className = 'cloud-word';
+            
+            // Размер шрифта от 20px до 80px в зависимости от частоты
+            const size = 20 + (count / maxCount) * 60; 
+            
+            span.style.fontSize = size + 'px';
+            span.style.color = colors[index % colors.length];
+            span.style.fontWeight = (count === maxCount) ? '900' : '600';
+            span.innerText = word;
+            
+            container.appendChild(span);
+        });
+    }
+
+    // === EXPORT CSV ===
     function exportData() {
         if (!window.currentAnswers || Object.keys(window.currentAnswers).length === 0) {
             alert("Нет данных!");
             return;
         }
         
-        // Добавляем BOM (\uFEFF) для корректного отображения кириллицы в Excel
         let csvContent = "\uFEFFИмя;Ответ;Время\r\n"; 
         
         const data = window.currentAnswers;
         for (const key in data) {
             const row = data[key];
-            // Используем точку с запятой как разделитель, так принято в RU Excel
             const name = `"${row.name.replace(/"/g, '""')}"`;
             const text = `"${row.text.replace(/"/g, '""')}"`;
             const time = row.timestamp ? new Date(row.timestamp).toLocaleString('ru-RU') : '-';
@@ -261,7 +378,6 @@
             csvContent += `${name};${text};${time}\r\n`;
         }
 
-        // Создаем Blob
         var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         var url = URL.createObjectURL(blob);
         
@@ -284,9 +400,7 @@
     }
 
     function toggleHide() { document.body.classList.toggle('blurred'); }
-
     function clearAll() { if(confirm('Удалить все ответы?')) db.ref('answers').remove(); }
-
     function partyTime() { db.ref('commands/party').set(Date.now()); }
 
     function triggerLocalConfetti() {
