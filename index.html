@@ -28,7 +28,7 @@
             overflow: hidden;
         }
 
-        /* --- SCREEN MODE --- */
+        
         body.screen-mode { height: 100vh; position: relative; }
 
         .admin-dock {
@@ -57,7 +57,6 @@
         .btn-magic { background: var(--btn-gradient); color: white; }
         .btn-magic:hover { box-shadow: 0 5px 20px rgba(118, 75, 162, 0.4); }
 
-        /* === WALL === */
         .answers-container {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -92,12 +91,11 @@
         
         @keyframes floatIn { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        /* === WORD CLOUD CONTAINER === */
         #cloudContainer {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             padding: 40px;
-            display: none; /* Скрыт по умолчанию */
+            display: none; 
             overflow: hidden;
             justify-content: center;
             align-items: center;
@@ -107,19 +105,16 @@
             transition: opacity 0.5s;
         }
         
-        /* Активное состояние облака */
         #cloudContainer.active {
             display: flex;
             opacity: 1;
         }
         
-        /* Скрытие стены при показе облака */
         .answers-container.hidden {
             opacity: 0;
             pointer-events: none;
         }
 
-        /* Стили слова в облаке */
         .cloud-word {
             display: inline-block;
             margin: 10px;
@@ -131,18 +126,15 @@
         }
         .cloud-word:hover { transform: scale(1.2); }
 
-        /* Reactions */
         #reactions-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
         .flying-emoji { position: absolute; bottom: 80px; font-size: 40px; animation: flyUp 4s linear forwards; }
         @keyframes flyUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
 
-        /* QR */
         .qr-wrap { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10; transition: 0.5s; }
         .qr-wrap.hidden { opacity: 0; pointer-events: none; }
         .qr-title { font-size: 20px; margin-bottom: 20px; color: #666; font-weight: 700; }
         .qr-box { background: rgba(255,255,255,0.9); padding: 20px; border-radius: 20px; display: inline-block; box-shadow: var(--shadow-soft); }
 
-        /* Blur */
         body.blurred .card-glass { filter: blur(15px); opacity: 0.4; pointer-events: none; }
         body.blurred::after {
             content: '🤫 Тише...'; position: fixed; top: 50%; left: 50%;
@@ -151,7 +143,6 @@
             color: var(--accent-color); font-size: 24px; z-index: 200;
         }
 
-        /* --- USER --- */
         body.user-mode { display: flex; justify-content: center; align-items: center; padding: 20px; }
         
         .user-box { width: 100%; max-width: 400px; }
@@ -181,7 +172,7 @@
 <div id="app"></div>
 
 <script>
-    // ========== CONFIG ==========
+
     const firebaseConfig = {
         apiKey: "AIzaSyAcayVqT6ndEkB__eFwNQLiPltSmFTiO0c",
         authDomain: "forolesyanikolaevna.firebaseapp.com",
@@ -216,7 +207,6 @@
         }
     }
 
-    // ========== SCREEN ==========
     function startScreen() {
         document.body.className = 'screen-mode';
         document.getElementById('app').innerHTML = `
@@ -257,7 +247,7 @@
                      renderCard(data[key], false);
                 });
                 
-                // Если облако открыто, обновляем его
+                
                 if(window.isCloudVisible) generateCloud();
             }
         });
@@ -286,7 +276,6 @@
         if (sound) playSound('pop');
     }
 
-    // === WORD CLOUD LOGIC ===
     function toggleCloud() {
         const cloud = document.getElementById('cloudContainer');
         const list = document.getElementById('list');
@@ -308,16 +297,16 @@
 
     function generateCloud() {
         const container = document.getElementById('cloudContainer');
-        container.innerHTML = ''; // Очистка
+        container.innerHTML = ''; 
 
-        // Список стоп-слов (что исключить)
+
         const stopWords = ['и', 'в', 'во', 'не', 'что', 'он', 'на', 'я', 'с', 'со', 'как', 'а', 'то', 'все', 'она', 'так', 'его', 'но', 'да', 'ты', 'к', 'у', 'же', 'вы', 'за', 'бы', 'по', 'только', 'ее', 'мне', 'было', 'вот', 'от', 'меня', 'еще', 'нет', 'о', 'из', 'ему', 'теперь', 'когда', 'уже', 'для', 'вас', 'это', 'там', 'если', 'тут', 'ну', 'ли', 'а', 'даже', 'чтобы', 'мы', 'их', 'чем', 'был', 'тебя', 'его'];
         
         let words = [];
         
-        // Собираем слова
+     
         Object.values(window.currentAnswers).forEach(ans => {
-            const text = ans.text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Убираем пунктуацию
+            const text = ans.text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); 
             const parts = text.split(/\s+/);
             parts.forEach(word => {
                 if(word.length > 2 && !stopWords.includes(word)) {
@@ -326,13 +315,13 @@
             });
         });
 
-        // Считаем частоту
+
         const frequency = words.reduce((acc, word) => {
             acc[word] = (acc[word] || 0) + 1;
             return acc;
         }, {});
 
-        // Сортируем и берем топ 50
+       
         const sorted = Object.entries(frequency).sort((a, b) => b[1] - a[1]).slice(0, 50);
 
         if(sorted.length === 0) {
@@ -347,7 +336,7 @@
             const span = document.createElement('span');
             span.className = 'cloud-word';
             
-            // Размер шрифта от 20px до 80px в зависимости от частоты
+           
             const size = 20 + (count / maxCount) * 60; 
             
             span.style.fontSize = size + 'px';
@@ -359,7 +348,7 @@
         });
     }
 
-    // === EXPORT CSV ===
+  
     function exportData() {
         if (!window.currentAnswers || Object.keys(window.currentAnswers).length === 0) {
             alert("Нет данных!");
@@ -415,7 +404,7 @@
         }
     }
 
-    // ========== USER ==========
+    
     function startUser() {
         document.body.className = 'user-mode';
         document.getElementById('app').innerHTML = `
